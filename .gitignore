@@ -26,10 +26,13 @@ node_modules/
 .mypy_cache/
 
 # PyCharm
-.idea/
-
-# pyenv
-.python-version
+/.idea/*
+!/.idea/ContainerLogsDemo.iml
+!/.idea/modules.xml
+!/.idea/misc.xml
+!/.idea/ruff.xml
+!/.idea/vcs.xml
+!/.idea/externalDependencies.xml
 
 *.egg-info
 

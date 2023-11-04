@@ -24,6 +24,7 @@ ignorePaths:
   - cspell.config.yaml
   - package.json
   - pyproject.toml
+  - .idea/*
 words:
   - fargate
   - kibibytes
