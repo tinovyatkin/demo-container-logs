@@ -1,0 +1,72 @@
+{
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**.egg-info": true,
+    "**/.idea": true,
+    "**/*.egg-info": {
+      "when": "$(basename)"
+    },
+    "**/node_modules": true,
+    ".npmrc": true,
+    "**/.pytest_cache": true,
+    ".coverage": true,
+    "**/.ruff_cache": true,
+    ".mypy_cache": true,
+    ".cspellcache": true
+  },
+  "search.exclude": {
+    "**.egg-info": true,
+    "**/__pycache__": true,
+    "**/private": true,
+    "**/.venv": true,
+    "**/node_modules": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "cspell.config.yaml": true,
+    ".project-words.txt": true
+  },
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/site-packages/**": true,
+    "**/bin/**": true
+  },
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnSave": true,
+    "editor.wordBasedSuggestions": false,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true,
+      "source.organizeImports": true
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "python.testing.pytestEnabled": true,
+  "isort.serverEnabled": false,
+  "isort.args": ["--extend-skip-glob=*.py"],
+  "flake8.args": [
+    "--quiet",
+    "--isolated",
+    "--exit-zero",
+    "--extend-exclude=*.py"
+  ],
+  "black-formatter.args": ["--force-exclude='\\.py$'"],
+  "python.linting.mypyArgs": [],
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.indexing": true,
+  "python.analysis.packageIndexDepths": [
+    {
+      "name": "",
+      "depth": 1,
+      "includeAllSymbols": true
+    }
+  ],
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.importFormat": "relative",
+  "python.analysis.fixAll": ["source.unusedImports"],
+  "python.analysis.autoImportUserSymbols": true
+}

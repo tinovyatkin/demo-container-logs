@@ -1,5 +1,7 @@
 {
-    "devDependencies": {
-        "aws-cdk": "2.102.0"
-    }
+  "devDependencies": {
+    "aws-cdk": "^2.104.0",
+    "cspell": "^7.3.8",
+    "pyright": "^1.1.334"
+  }
 }

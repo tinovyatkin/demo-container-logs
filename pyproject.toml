@@ -1,0 +1,188 @@
+[project]
+name = "ContainerLogsDemo"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "aws-cdk-lib~=2.104.0",
+    "constructs~=10.3.0",
+    "tomli>=2; python_version < \"3.11\"",
+]
+
+[[project.authors]]
+name = "Konstantin Vyatkin"
+email = "tino@vtkn.ion"
+
+[project.optional-dependencies]
+dev = ["ruff>=0.1.4", "build~=1.0.0", "mypy>=1.5.1", "pre-commit<4,>3.3"]
+
+[tool.setuptools]
+py-modules = []
+
+[tool.ruff]
+line-length = 110
+unfixable = []
+extend-exclude = [".egg*", "build", "private"]
+extend-select = [
+    "B",
+    "C4",
+    "D101",
+    "D106",
+    "D2",
+    "D3",
+    "D400",
+    "D402",
+    "D403",
+    "D412",
+    "D419",
+    "I",
+    "ICN",
+    "N",
+    "PGH",
+    "PIE",
+    "PT",
+    "PTH",
+    "Q",
+    "RUF",
+    "RUF100",
+    "SIM",
+    "TCH",
+    "TID",
+    "UP",
+]
+ignore = [
+    "COM812",
+    "COM819",
+    "D203",
+    "D205",
+    "D206",
+    "D212",
+    "D213",
+    "D214",
+    "D215",
+    "D300",
+    "E111",
+    "E114",
+    "E117",
+    "E731",
+    "ISC001",
+    "ISC002",
+    "PGH002",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "RUF012",
+    "W191",
+]
+
+[tool.ruff.isort]
+required-imports = ["from __future__ import annotations"]
+combine-as-imports = true
+section-order = [
+    "future",
+    "standard-library",
+    "tests",
+    "cdk",
+    "glue",
+    "lambda",
+    "glue-preinstalled",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.isort.sections]
+glue = ["awsglue", "pyspark", "ray"]
+glue-preinstalled = [
+    "boto3",
+    "botocore",
+    "fsspec",
+    "matplotlib",
+    "mpmath",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "PyMySQL",
+    "pyparsing",
+    "python-dateutil",
+    "pytz",
+    "PyYAML",
+    "regex",
+    "requests",
+    "s3fs",
+    "sympy",
+]
+cdk = ["aws_cdk", "constructs", "amzn_pipelines"]
+lambda = ["aws_lambda_powertools", "aws_lambda_typing"]
+tests = ["pytest", "moto", "mock", "unittest", "syrupy"]
+
+[tool.ruff.flake8-import-conventions.extend-aliases]
+awswrangler = "wr"
+aws_cdk = "cdk"
+
+[tool.ruff.flake8-type-checking]
+exempt-modules = [
+    "typing",
+    "typing_extensions",
+    "awsglue",
+    "pyspark",
+    "ray",
+    "aws_cdk",
+    "amzn_pipelines",
+    "constructs",
+    "aws_lambda_typing",
+    "aws_lambda_powertools",
+]
+
+[tool.mypy]
+platform = "linux"
+exclude = [".venv/", "build/", "cdk.out/"]
+namespace_packages = false
+allow_redefinition = false
+check_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = true
+implicit_reexport = false
+local_partial_types = true
+implicit_optional = false
+strict_equality = true
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+disable_error_code = "union-attr"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
+stubPath = ""
+reportUnknownParameterType = false
+reportMissingParameterType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportUnknownMemberType = false
+reportWildcardImportFromLibrary = false
+reportMissingTypeStubs = false
+reportIncompleteStub = false
+reportMatchNotExhaustive = false
+reportUnusedClass = false
+reportGeneralTypeIssues = false
+reportUntypedFunctionDecorator = false
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportOptionalMemberAccess = "warning"
+reportMissingImports = "warning"
+reportMissingTypeArgument = "warning"
+reportTypedDictNotRequiredAccess = "warning"
+reportPrivateUsage = "warning"
+reportUnknownLambdaType = "warning"
+useLibraryCodeForTypes = true
+pythonPath = ".venv/bin/python"
+ignore = ["src/amzn_adt_projen/cdk_sample/"]
+exclude = ["**/.*", "**/__pycache__", "**/build", "**/dist", "**/node_modules"]
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61", "wheel"]

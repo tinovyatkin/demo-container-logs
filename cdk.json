@@ -1,6 +1,9 @@
 {
   "app": "python app.py",
+  "requireApproval": "never",
+  "notices": false,
   "context": {
-    "@aws-cdk/aws-iam:minimizePolicies": true
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/customresources:installLatestAwsSdkDefault": false
   }
 }

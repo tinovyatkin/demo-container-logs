@@ -1,5 +1,6 @@
 # AWS CDK
 cdk.out/
+cdk.context.json
 
 # Byte-compiled / optimized / DLL
 __pycache__/
@@ -29,3 +30,5 @@ node_modules/
 
 # pyenv
 .python-version
+
+*.egg-info

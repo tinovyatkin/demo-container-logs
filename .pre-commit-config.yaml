@@ -1,0 +1,57 @@
+default_stages:
+  - commit
+default_language_version:
+  node: system
+  python: python3.10
+repos:
+  - repo: meta
+    hooks:
+      - id: identity
+        name: Print input to the static check hooks for troubleshooting
+      - id: check-hooks-apply
+        name: Check if all hooks apply to the repository
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.14
+    hooks:
+      - id: validate-pyproject
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.4
+    hooks:
+      - id: ruff
+        args:
+          - --fix
+          - --exit-non-zero-on-fix
+      - id: ruff-format
+        args:
+          - --respect-gitignore
+  - repo: local
+    hooks:
+      - id: pip-install
+        name: pip-install
+        language: system
+        pass_filenames: false
+        stages:
+          - post-checkout
+          - post-merge
+          - post-rewrite
+        entry: bash -c 'if [ ! -z $(git diff --name-only HEAD@{3} HEAD -- pyproject.toml) ]; then $(brazil-farm --package PeruPython)/bin/perupy-get-venv --no-pip-upgrade --target .venv -- projen install ; fi'
+        always_run: true
+      - id: mypy
+        name: mypy
+        entry: .venv/bin/mypy
+        language: system
+        types:
+          - python
+        require_serial: true
+      - id: pyright
+        name: pyright
+        entry: npx pyright --pythonpath .venv/bin/python
+        types:
+          - python
+        language: node
+        require_serial: true
+      - id: cspell
+        name: cspell
+        language: node
+        entry: npx cspell --no-must-find-files --no-summary --cache
+        require_serial: true
