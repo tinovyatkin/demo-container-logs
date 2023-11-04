@@ -32,3 +32,5 @@ node_modules/
 .python-version
 
 *.egg-info
+
+.cspellcache
