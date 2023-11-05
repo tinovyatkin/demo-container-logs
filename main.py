@@ -1,3 +1,8 @@
+"""
+This script is just a runner / extra UI for the CDK app.
+It deploys the CDK app and then prints the links to the logs
+but whole logic is in the CDK app - see `app.py`.
+"""
 from __future__ import annotations
 
 import argparse
