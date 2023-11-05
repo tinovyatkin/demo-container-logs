@@ -26,16 +26,6 @@ repos:
           - --respect-gitignore
   - repo: local
     hooks:
-      - id: pip-install
-        name: pip-install
-        language: system
-        pass_filenames: false
-        stages:
-          - post-checkout
-          - post-merge
-          - post-rewrite
-        entry: bash -c 'if [ ! -z $(git diff --name-only HEAD@{3} HEAD -- pyproject.toml) ]; then $(brazil-farm --package PeruPython)/bin/perupy-get-venv --no-pip-upgrade --target .venv -- projen install ; fi'
-        always_run: true
       - id: mypy
         name: mypy
         entry: .venv/bin/mypy
