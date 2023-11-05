@@ -16,6 +16,7 @@ from subprocess import run
 import boto3
 
 import rich
+from rich.progress import Progress
 from rich.prompt import Prompt
 
 parser = argparse.ArgumentParser("container-logs")
@@ -31,13 +32,13 @@ parser.add_argument(
 )
 credentials_group = parser.add_argument_group("AWS credentials")
 credentials_group.add_argument(
-    "--aws-access-key-id", help="AWS credentials.", type=str, default="", required=False
+    "--aws-access-key-id", help="AWS credentials.", type=str, default=None, required=False
 )
 credentials_group.add_argument(
-    "--aws-secret-access-key", help="AWS credentials.", type=str, default="", required=False
+    "--aws-secret-access-key", help="AWS credentials.", type=str, default=None, required=False
 )
 
-parser.add_argument("--aws-region", help="A name of an AWS region", type=str, default="", required=False)
+parser.add_argument("--aws-region", help="A name of an AWS region", type=str, default=None, required=False)
 args = parser.parse_args()
 
 context = [
@@ -89,12 +90,28 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     region = arn[3]
     account = arn[4]
     task = arn[5].split("/", 3)
+    ecs_client = boto3.client(
+        "ecs",
+        region_name=region,
+        aws_access_key_id=args.aws_access_key_id,
+        aws_secret_access_key=args.aws_secret_access_key,
+    )
+
     rich.print(
         f"[bold]Started task:[/bold] https://{region}.console.aws.amazon.com/ecs/v2/clusters/{task[1]}/tasks/{task[2]}?region={region}"
     )
-    rich.print("[italic]Please wait for the task to start and logs to populate...[/italic]")
+    with Progress(transient=True) as progress:
+        progress.add_task("[italic]Waiting for task to initialize...[/italic]", total=None)
+        waiter_run = ecs_client.get_waiter("tasks_running")
+        waiter_run.wait(
+            cluster=task[1],
+            tasks=[task[2]],
+            WaiterConfig={"Delay": 5},
+        )
+
     rich.print(
-        f"[bold cyan]Logs:[/bold cyan] https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logEventViewer:group={args.aws_cloudwatch_group};stream={args.aws_cloudwatch_stream}/Container/{task[2]}"
+        f"[bold cyan]Logs:[/bold cyan] https://{region}.console.aws.amazon.com/cloudwatch/home?region={region}#logEventViewer:group={args.aws_cloudwatch_group};stream={args.aws_cloudwatch_stream}/Container/{task[2]}",
+        end="\n\n",
     )
 
     rich.print(":question: [bold]What to do?[/bold]")
@@ -105,13 +122,20 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     )
     match action:
         case "Stop the task":
-            rich.print("[bold]Stopping the task...[/bold]")
-            ecs_client = boto3.client("ecs", region_name=region)
-            ecs_client.stop_task(
-                cluster=task[1],
-                task=task[2],
-                reason="Stopped by container-logs",
-            )
+            with Progress(transient=True) as progress:
+                progress.add_task("[bold]Stopping the task...[/bold]", total=None)
+                ecs_client.stop_task(
+                    cluster=task[1],
+                    task=task[2],
+                    reason="Stopped by container-logs",
+                )
+                waiter_stop = ecs_client.get_waiter("tasks_stopped")
+                waiter_stop.wait(
+                    cluster=task[1],
+                    tasks=[task[2]],
+                    WaiterConfig={"Delay": 5},
+                )
+            rich.print("[bold] :white_check_mark: Task stopped[/bold]")
 
         case "Destroy all":
             rich.print("[bold]Destroying all resources...[/bold]")
@@ -120,6 +144,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
                     "npx",
                     "cdk",
                     "destroy",
+                    "--force",
                     *context,
                 ],
                 env=env,

@@ -68,5 +68,15 @@
   "python.analysis.autoImportCompletions": true,
   "python.analysis.importFormat": "relative",
   "python.analysis.fixAll": ["source.unusedImports"],
-  "python.analysis.autoImportUserSymbols": true
+  "python.analysis.autoImportUserSymbols": true,
+  "emojisense.languages": {
+    "markdown": true,
+    "plaintext": {
+      "markupCompletionsEnabled": false,
+      "emojiDecoratorsEnabled": false
+    },
+    "scminput": true,
+    "git-commit": true,
+    "python": true
+  }
 }
