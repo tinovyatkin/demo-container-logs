@@ -39,9 +39,9 @@ The brute-force solution probably would be:
 
 Now, the step 3 is obviously the most complicated one, as it requires proper parsing of _any_ docker logs into CloudWatch structure, particularly things like handling timestamps and multi-line logs.
 
-This is not only boring solution, but also re-inventing the wheel. As we may remember, AWS already provides a way for Docker containters running on ECS to publish their logs into CloudWatch log group.
+This is not only naive solution, but also re-inventing the wheel. As we may remember, AWS already provides a way for Docker containters running on ECS to publish their logs into CloudWatch log group using the [awslogs](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_awslogs.html) log driver.
 
-So, the solution implemented here is demonstrating the use of AWS CDK (Python version) to create specified Fargate Task definition with container logs redirected to CloudWatch log group.
+Considering the above, the solution implemented here is demonstrating the use of AWS CDK (Python version) to create specified Fargate Task definition with container logs redirected to the given CloudWatch log group.
 
 ### Bootstrap
 
@@ -56,11 +56,18 @@ Run following script to bootstrap Python venv and install required dependencies:
 The project actually can be run as a normal CDK deployment providing all required parameters in the CLI command:
 
 ```sh
-npx cdk deploy --context log_group_name=test-task-group-1 --context stream_prefix=test-task-stream-1 --context container_image=python --context container_command='pip install pip -U && pip install tqdm && python -c \"import time\ncounter = 0\nwhile True:\n\tprint(counter)\n\tcounter = counter + 1\n\ttime.sleep(0.1)\"'
+npx cdk deploy --context log_group_name=test-task-group-1 \
+               --context stream_prefix=test-task-stream-1 \
+               --context container_image=python \
+               --context container_command='pip install pip -U && pip install tqdm && python -c \"import time\ncounter = 0\nwhile True:\n\tprint(counter)\n\tcounter = counter + 1\n\ttime.sleep(0.1)\"'
 ```
 
 For the sake of completeness we also providing [main.py](./main.py) that implements arguments remapping and adds UX as described in the problem statement:
 
 ```sh
-python main.py --docker-image=python --bash-command $'pip install pip -U && pip install tqdm && python -c \"import time\ncounter = 0\nwhile True:\n\tprint(counter)\n\tcounter = counter + 1\n\ttime.sleep(0.1)\"' --aws-cloudwatch-group test-task-group-1 --aws-cloudwatch-stream test-task-stream-1 --aws-region eu-west-1
+python main.py --docker-image=python \
+               --bash-command $'pip install pip -U && pip install tqdm && python -c \"import time\ncounter = 0\nwhile True:\n\tprint(counter)\n\tcounter = counter + 1\n\ttime.sleep(0.1)\"' \
+               --aws-cloudwatch-group test-task-group-1 \
+               --aws-cloudwatch-stream test-task-stream-1 \
+               --aws-region eu-west-1
 ```
