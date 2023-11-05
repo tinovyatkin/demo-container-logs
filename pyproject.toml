@@ -5,7 +5,9 @@ requires-python = ">=3.10"
 dependencies = [
     "aws-cdk-lib~=2.104.0",
     "constructs~=10.3.0",
+    "rich~=13.6.0",
     "tomli>=2; python_version < \"3.11\"",
+    "boto3~=1.28.78",
 ]
 
 [[project.authors]]
@@ -13,7 +15,13 @@ name = "Konstantin Vyatkin"
 email = "tino@vtkn.ion"
 
 [project.optional-dependencies]
-dev = ["ruff>=0.1.4", "build~=1.0.0", "mypy>=1.5.1", "pre-commit<4,>3.3"]
+dev = [
+    "ruff>=0.1.4",
+    "build~=1.0.0",
+    "mypy>=1.5.1",
+    "pre-commit<4,>3.3",
+    "boto3-stubs[essential,ecs]~=1.28.78",
+]
 
 [tool.setuptools]
 py-modules = []

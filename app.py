@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import os
 
 import aws_cdk as cdk
@@ -11,24 +12,28 @@ import aws_cdk.custom_resources as cr
 
 app = cdk.App(default_stack_synthesizer=cdk.CliCredentialsStackSynthesizer())
 
-log_group_name = "test-task-group-6"
-stream_prefix = "test-task-stream-5"
-container_name = "python:3.11"
-command = 'pip install pip -U && pip install tqdm && python -c "import time\ncounter = 0\nwhile True:\n\tprint(counter)\n\tcounter = counter + 1\n\ttime.sleep(0.1)"'
-
+log_group_name = app.node.get_context("log_group_name")
+stream_prefix = app.node.get_context("stream_prefix")
+container_image = app.node.get_context("container_image")
+container_command = (
+    base64.urlsafe_b64decode(app.node.get_context("container_command_b64")).decode()
+    if app.node.try_get_context("container_command_b64")
+    else app.node.get_context("container_command")
+)
+account = app.node.try_get_context("account")
+region = app.node.try_get_context("region")
 
 stack = cdk.Stack(
     app,
     "ContainerTask",
     env=cdk.Environment(
-        account=os.environ.get("CDK_DEFAULT_ACCOUNT"),
-        region=os.environ.get("CDK_DEFAULT_REGION"),
+        account=account or os.environ.get("CDK_DEFAULT_ACCOUNT"),
+        region=region or os.environ.get("CDK_DEFAULT_REGION"),
     ),
 )
 
 vpc = ec2.Vpc.from_lookup(stack, "VPC", is_default=True)
 cluster = ecs.Cluster(stack, "LoggingCluster", vpc=vpc, enable_fargate_capacity_providers=True)
-
 
 log_group_upsert = cr.AwsCustomResource(
     stack,
@@ -50,21 +55,18 @@ log_group = logs.LogGroup.from_log_group_name(
 )
 log_group.node.add_dependency(log_group_upsert)
 
-
 task_definition = ecs.FargateTaskDefinition(stack, "TaskDefinition")
 task_definition.add_container(
     "Container",
-    image=ecs.ContainerImage.from_registry(container_name),
+    image=ecs.ContainerImage.from_registry(container_image),
     command=[
         "/bin/sh",
         "-c",
-        command,
+        container_command,
     ],
     logging=ecs.AwsLogDriver(
         log_group=log_group,
         stream_prefix=stream_prefix,
-        mode=ecs.AwsLogDriverMode.NON_BLOCKING,
-        max_buffer_size=cdk.Size.kibibytes(1),  # default is 1MB, we set it smaller to see logs faster
     ),
 )
 
@@ -125,6 +127,5 @@ task_runner.node.add_dependency(task_definition)
 cdk.CfnOutput(stack, "ClusterName", value=cluster.cluster_name)
 cdk.CfnOutput(stack, "TaskDefinitionArn", value=task_definition.task_definition_arn)
 cdk.CfnOutput(stack, "StartedTaskArn", value=task_runner.get_response_field("tasks.0.taskArn"))
-
 
 app.synth()

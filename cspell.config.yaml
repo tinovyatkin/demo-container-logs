@@ -26,6 +26,7 @@ ignorePaths:
   - pyproject.toml
   - .idea/*
 words:
+  - boto
   - fargate
   - kibibytes
   - tqdm
