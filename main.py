@@ -75,8 +75,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
             "npx",
             "cdk",
             "deploy",
-            "--require-approval",
-            "never",
             "--outputs-file",
             outputs_file,
             *context,
