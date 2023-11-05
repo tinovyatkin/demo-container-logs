@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import os
+import time
 
 import aws_cdk as cdk
 import aws_cdk.aws_ec2 as ec2
@@ -35,26 +36,6 @@ stack = cdk.Stack(
 vpc = ec2.Vpc.from_lookup(stack, "VPC", is_default=True)
 cluster = ecs.Cluster(stack, "LoggingCluster", vpc=vpc, enable_fargate_capacity_providers=True)
 
-log_group_upsert = cr.AwsCustomResource(
-    stack,
-    "LogGroupUpsert",
-    resource_type="Custom::LogGroupUpsert",
-    on_create=cr.AwsSdkCall(
-        service="CloudwatchLogs",
-        action="createLogGroup",
-        parameters={"logGroupName": log_group_name},
-        ignore_error_codes_matching="ResourceAlreadyExistsException",
-        physical_resource_id=cr.PhysicalResourceId.of(log_group_name),
-    ),
-    policy=cr.AwsCustomResourcePolicy.from_sdk_calls(resources=cr.AwsCustomResourcePolicy.ANY_RESOURCE),
-)
-log_group = logs.LogGroup.from_log_group_name(
-    stack,
-    "LogGroup",
-    log_group_name=log_group_name,
-)
-log_group.node.add_dependency(log_group_upsert)
-
 task_definition = ecs.FargateTaskDefinition(stack, "TaskDefinition")
 task_definition.add_container(
     "Container",
@@ -64,10 +45,28 @@ task_definition.add_container(
         "-c",
         container_command,
     ],
-    logging=ecs.AwsLogDriver(
-        log_group=log_group,
-        stream_prefix=stream_prefix,
+    health_check=ecs.HealthCheck(
+        command=["CMD-SHELL", "exit 0"],
+        interval=cdk.Duration.seconds(5),
+        start_period=cdk.Duration.seconds(5),
     ),
+    logging=ecs.AwsLogDriver(
+        log_group=logs.LogGroup.from_log_group_name(
+            stack,
+            "LogGroup",
+            log_group_name=log_group_name,
+        ),
+        stream_prefix=stream_prefix,
+        mode=ecs.AwsLogDriverMode.NON_BLOCKING,
+        max_buffer_size=cdk.Size.kibibytes(1),  # default is 1MiB, we want less buffering
+    ),
+)
+# CDK doesn't support `awslogs-create-group` so using an escape hatch
+task_definition.node.default_child.add_property_override(
+    "ContainerDefinitions.0.LogConfiguration.Options.awslogs-create-group", "true"
+)
+task_definition.add_to_execution_role_policy(
+    iam.PolicyStatement(actions=["logs:CreateLogStream", "logs:CreateLogGroup"], resources=["*"])
 )
 
 # running the task
@@ -88,6 +87,7 @@ start_task = cr.AwsSdkCall(
                 "assignPublicIp": "ENABLED",
             }
         },
+        "startedBy": time.strftime("cdk-%Y%m%d%H%M%S"),
     },
     physical_resource_id=cr.PhysicalResourceId.from_response("tasks.0.taskArn"),
 )
